@@ -8,6 +8,7 @@ use App\Models\ItemJurnal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PerkiraanController extends Controller
 {
@@ -285,7 +286,28 @@ class PerkiraanController extends Controller
         $startDate = $request->input('start_date', now()->startOfMonth());
         $endDate = $request->input('end_date', now()->endOfMonth());
 
-        // Get transactions with running balance
+        $items = $this->getLedgerItems($perkiraan, $startDate, $endDate);
+
+        return view('accounting.perkiraan.ledger', compact('perkiraan', 'items', 'startDate', 'endDate'));
+    }
+
+    public function printLedger(Request $request, Perkiraan $perkiraan)
+    {
+        $startDate = $request->input('start_date', now()->startOfMonth());
+        $endDate = $request->input('end_date', now()->endOfMonth());
+
+        $items = $this->getLedgerItems($perkiraan, $startDate, $endDate);
+
+        $pdf = Pdf::loadView('accounting.perkiraan.ledger-pdf', compact(
+            'perkiraan', 'items', 'startDate', 'endDate'
+        ))->setPaper('a4', 'landscape');
+
+        return $pdf->download('buku-besar-' . $perkiraan->kode_perkiraan . '.pdf');
+    }
+
+    // Private helper agar tidak duplikasi kode
+    private function getLedgerItems(Perkiraan $perkiraan, $startDate, $endDate)
+    {
         $items = ItemJurnal::with('jurnal')
             ->where('kode_perkiraan', $perkiraan->kode_perkiraan)
             ->whereHas('jurnal', function($query) use ($startDate, $endDate) {
@@ -295,7 +317,6 @@ class PerkiraanController extends Controller
             ->orderBy('created_at')
             ->get();
 
-        // Calculate running balance
         $runningBalance = 0;
         $items->transform(function($item) use (&$runningBalance) {
             $runningBalance += ($item->debet - $item->kredit);
@@ -303,7 +324,7 @@ class PerkiraanController extends Controller
             return $item;
         });
 
-        return view('accounting.perkiraan.ledger', compact('perkiraan', 'items', 'startDate', 'endDate'));
+        return $items;
     }
 
     /**

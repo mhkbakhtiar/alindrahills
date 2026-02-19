@@ -1,4 +1,3 @@
-{{-- resources/views/accounting/jurnal/show.blade.php --}}
 @extends('layouts.app')
 
 @section('title', 'Detail Jurnal')
@@ -57,18 +56,6 @@
             </x-button>
         </div>
     </div>
-
-    @if(session('success'))
-        <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-sm">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
-            {{ session('error') }}
-        </div>
-    @endif
 
     {{-- Header Information --}}
     <x-card>
@@ -151,8 +138,7 @@
                         <th class="px-3 py-2 text-left font-semibold">Keterangan</th>
                         <th class="px-3 py-2 text-right font-semibold">Debet (Rp)</th>
                         <th class="px-3 py-2 text-right font-semibold">Kredit (Rp)</th>
-                        <th class="px-3 py-2 text-left font-semibold">Kavling</th>
-                        <th class="px-3 py-2 text-left font-semibold">User</th>
+                        <th class="px-3 py-2 text-left font-semibold">Kavling - Pembeli</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -184,8 +170,16 @@
                                     <span class="text-gray-400">-</span>
                                 @endif
                             </td>
-                            <td class="px-3 py-2 text-gray-600">{{ $item->kode_kavling ?? '-' }}</td>
-                            <td class="px-3 py-2 text-gray-600">{{ $item->user->full_name ?? '-' }}</td>
+                            <td class="px-3 py-2 text-gray-600">
+                                @if($item->kavlingPembeli)
+                                    {{ $item->kavlingPembeli->kavling->kavling ?? '' }}
+                                    {{ $item->kavlingPembeli->kavling->blok ? '- ' . $item->kavlingPembeli->kavling->blok : '' }}
+                                    {{ $item->kavlingPembeli->pembeli->nama ? '| ' . $item->kavlingPembeli->pembeli->nama : '' }}
+                                @else
+                                    {{ $item->kode_kavling ?? '-' }}
+                                @endif
+                            </td>
+                            {{-- HAPUS baris <td> user yang lama --}}
                         </tr>
                     @endforeach
                 </tbody>
@@ -194,7 +188,7 @@
                         <td colspan="4" class="px-3 py-2 text-right">TOTAL:</td>
                         <td class="px-3 py-2 text-right text-green-600">Rp {{ number_format($totalDebet, 0, ',', '.') }}</td>
                         <td class="px-3 py-2 text-right text-red-600">Rp {{ number_format($totalKredit, 0, ',', '.') }}</td>
-                        <td colspan="2" class="px-3 py-2">
+                        <td class="px-3 py-2">
                             @if(abs($totalDebet - $totalKredit) < 0.01)
                                 <span class="text-green-600">✓ BALANCE</span>
                             @else

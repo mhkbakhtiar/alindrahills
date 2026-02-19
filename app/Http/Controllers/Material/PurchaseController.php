@@ -114,6 +114,12 @@ class PurchaseController extends Controller
 
             // 3. Create Jurnal Otomatis
             $tahunAnggaran = TahunAnggaran::active()->first();
+
+            if (!$tahunAnggaran) {
+                return back()
+                    ->withInput()
+                    ->with('error', 'Tidak ada Tahun Anggaran yang aktif. Silakan aktifkan terlebih dahulu!');
+            }
             
             $jurnal = Jurnal::create([
                 'nomor_bukti' => $this->generateJurnalNumber(),

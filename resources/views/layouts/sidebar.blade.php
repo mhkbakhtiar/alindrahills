@@ -163,9 +163,32 @@
                     </svg>
                 </button>
                 <div x-show="open" class="pl-8 space-y-1">
+                    <a href="{{ route('accounting.tahun-anggaran.index') }}" class="block px-4 py-1.5 hover:bg-gray-800 {{ request()->routeIs('accounting.tahun-anggaran.*') ? 'text-white' : '' }}">Tahun Anggaran</a>
                     <a href="{{ route('purchases.index') }}" class="block px-4 py-1.5 hover:bg-gray-800 {{ request()->routeIs('purchases.*') ? 'text-white' : '' }}">Pembelian Material</a>
                     <a href="{{ route('accounting.perkiraan.index') }}" class="block px-4 py-1.5 hover:bg-gray-800">Perkiraan</a>
                     <a href="{{ route('accounting.jurnal.index') }}" class="block px-4 py-1.5 hover:bg-gray-800">Jurnal</a>
+                </div>
+            </div>
+            
+            <div x-data="{ open: false }">
+                <button @click="open = !open" class="w-full flex items-center justify-between px-4 py-2 hover:bg-gray-800">
+                    <span class="flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Laporan Keuangan
+                    </span>
+                    <svg class="w-3 h-3 transition-transform" :class="open ? 'rotate-90' : ''" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <div x-show="open" class="pl-8 space-y-1">
+                    <a href="{{ route('accounting.laporan.jurnal-umum') }}" class="block px-4 py-1.5 hover:bg-gray-800 {{ request()->routeIs('accounting.laporan.jurnal-umum') ? 'text-white' : '' }}">Jurnal Umum</a>
+                    <a href="{{ route('accounting.laporan.buku-besar') }}" class="block px-4 py-1.5 hover:bg-gray-800 {{ request()->routeIs('accounting.laporan.buku-besar') ? 'text-white' : '' }}">Buku Besar</a>
+                    <a href="{{ route('accounting.laporan.calk') }}" class="block px-4 py-1.5 hover:bg-gray-800 {{ request()->routeIs('accounting.laporan.calk') ? 'text-white' : '' }}">Catatan Atas Laporan Keuangan (CALK)</a>
+                    <a href="{{ route('accounting.laporan.buku-pembantu-kavling') }}" class="block px-4 py-1.5 hover:bg-gray-800 {{ request()->routeIs('accounting.laporan.buku-pembantu-kavling') ? 'text-white' : '' }}">Buku Pembantu Kavling</a>
+                    <a href="{{ route('accounting.laporan.neraca') }}" class="block px-4 py-1.5 hover:bg-gray-800 {{ request()->routeIs('accounting.laporan.neraca') ? 'text-white' : '' }}">Neraca</a>
+                    <a href="{{ route('accounting.laporan.laba-rugi') }}" class="block px-4 py-1.5 hover:bg-gray-800 {{ request()->routeIs('accounting.laporan.laba-rugi') ? 'text-white' : '' }}">Laba Rugi</a>
                 </div>
             </div>
             @endif

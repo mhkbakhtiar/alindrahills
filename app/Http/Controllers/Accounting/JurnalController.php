@@ -118,6 +118,12 @@ class JurnalController extends Controller
             // Get tahun anggaran aktif
             $tahunAnggaran = TahunAnggaran::active()->first();
 
+            if (!$tahunAnggaran) {
+                return back()
+                    ->withInput()
+                    ->with('error', 'Tidak ada Tahun Anggaran yang aktif. Silakan aktifkan terlebih dahulu!');
+            }
+
             // Create jurnal
             $jurnal = Jurnal::create([
                 'nomor_bukti' => $validated['nomor_bukti'],
@@ -143,12 +149,12 @@ class JurnalController extends Controller
                     'urutan' => $index + 1,
                 ]);
 
-                // Update saldo perkiraan
-                $this->updateSaldoPerkiraan(
-                    $item['kode_perkiraan'], 
-                    $item['debet'], 
-                    $item['kredit']
-                );
+                // Update saldo perkiraan di comment karena status masih draft, saldo akan diupdate saat post
+                // $this->updateSaldoPerkiraan(
+                //     $item['kode_perkiraan'], 
+                //     $item['debet'], 
+                //     $item['kredit']
+                // );
             }
 
             DB::commit();
@@ -168,15 +174,15 @@ class JurnalController extends Controller
     /**
      * Display the specified jurnal
      */
-    public function show(Jurnal $jurnal)
+    public function show($id)
     {
-        $jurnal->load([
+        $jurnal = Jurnal::with([
             'items.perkiraan',
-            'items.kavling',
-            'items.user',
+            'items.kavlingPembeli.kavling',
+            'items.kavlingPembeli.pembeli',
             'creator',
             'tahunAnggaran'
-        ]);
+        ])->findOrFail($id);
 
         return view('accounting.jurnal.show', compact('jurnal'));
     }
@@ -300,8 +306,10 @@ class JurnalController extends Controller
     /**
      * Post jurnal (change status from draft to posted)
      */
-    public function post(Jurnal $jurnal)
+    public function post($id)
     {
+        $jurnal = Jurnal::findOrFail($id);
+
         if ($jurnal->status !== 'draft') {
             return back()->with('error', 'Jurnal sudah di-post');
         }
@@ -337,8 +345,10 @@ class JurnalController extends Controller
     /**
      * Void jurnal
      */
-    public function void(Jurnal $jurnal)
+    public function void($id)
     {
+        $jurnal = Jurnal::findOrFail($id);
+
         if ($jurnal->status === 'void') {
             return back()->with('error', 'Jurnal sudah void');
         }
@@ -399,9 +409,19 @@ class JurnalController extends Controller
     {
         $perkiraan = Perkiraan::where('kode_perkiraan', $kodePerkiraan)->first();
         
-        if ($perkiraan) {
+        if (!$perkiraan) return;
+
+        // Gunakan increment/decrement berdasarkan positif/negatif
+        if ($debet >= 0) {
             $perkiraan->increment('saldo_debet', $debet);
+        } else {
+            $perkiraan->decrement('saldo_debet', abs($debet));
+        }
+
+        if ($kredit >= 0) {
             $perkiraan->increment('saldo_kredit', $kredit);
+        } else {
+            $perkiraan->decrement('saldo_kredit', abs($kredit));
         }
     }
 
@@ -472,10 +492,41 @@ class JurnalController extends Controller
     /**
      * Print jurnal
      */
-    public function print(Jurnal $jurnal)
+    public function print($id)
     {
+        $jurnal = Jurnal::findOrFail($id);
+        
         $jurnal->load(['items.perkiraan', 'items.kavling', 'creator']);
         
         return view('accounting.jurnal.print', compact('jurnal'));
+    }
+
+    // Jalankan sekali untuk fix data yang sudah kotor
+    public function recalculateSaldo()
+    {
+        DB::beginTransaction();
+        try {
+            // Reset semua saldo ke 0
+            Perkiraan::query()->update([
+                'saldo_debet' => 0,
+                'saldo_kredit' => 0,
+            ]);
+
+            // Hitung ulang dari item jurnal yang berstatus posted saja
+            $items = ItemJurnal::whereHas('jurnal', fn($q) => $q->where('status', 'posted'))->get();
+
+            foreach ($items as $item) {
+                Perkiraan::where('kode_perkiraan', $item->kode_perkiraan)
+                    ->increment('saldo_debet', $item->debet);
+                Perkiraan::where('kode_perkiraan', $item->kode_perkiraan)
+                    ->increment('saldo_kredit', $item->kredit);
+            }
+
+            DB::commit();
+            return back()->with('success', 'Saldo berhasil direcalculate');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', $e->getMessage());
+        }
     }
 }

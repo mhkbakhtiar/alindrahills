@@ -76,4 +76,9 @@ class ItemJurnal extends Model
     {
         return $this->debet - $this->kredit;
     }
+
+    public function kavlingPembeli()
+    {
+        return $this->belongsTo(KavlingPembeli::class, 'kavling_pembeli_id');
+    }
 }

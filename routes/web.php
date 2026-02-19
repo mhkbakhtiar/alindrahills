@@ -170,6 +170,7 @@ Route::middleware(['auth'])->group(function () {
         
         // Reports
         Route::get('perkiraan/{perkiraan}/ledger', [PerkiraanController::class, 'ledger'])->name('perkiraan.ledger');
+        Route::get('perkiraan/{perkiraan}/ledger/print', [PerkiraanController::class, 'printLedger'])->name('perkiraan.ledger.print');
         
         Route::get('reports/trial-balance', [PerkiraanController::class, 'trialBalance'])->name('reports.trial-balance');
         
@@ -193,9 +194,11 @@ Route::middleware(['auth'])->group(function () {
         // Jurnal
         Route::resource('jurnal', JurnalController::class);
         Route::post('jurnal/import', [JurnalController::class, 'import'])->name('jurnal.import');
-        Route::post('jurnal/{id}/post', [JurnalController::class, 'post'])->name('jurnal.post');
-        Route::post('jurnal/{id}/void', [JurnalController::class, 'void'])->name('jurnal.void');
-        Route::get('jurnal/{id}/print', [JurnalController::class, 'print'])->name('jurnal.print');
+        Route::post('jurnal/{jurnal}/post', [JurnalController::class, 'post'])->name('jurnal.post');
+        Route::post('jurnal/{jurnal}/void', [JurnalController::class, 'void'])->name('jurnal.void');
+        Route::get('jurnal/{jurnal}/print', [JurnalController::class, 'print'])->name('jurnal.print');
+
+        Route::get('recalculate-saldo', [JurnalController::class, 'recalculateSaldo']);
         
         // Item Jurnal (AJAX endpoints)
         Route::prefix('item-jurnal')->name('item-jurnal.')->group(function () {

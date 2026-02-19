@@ -7,6 +7,7 @@ use App\Models\Jurnal;
 use App\Models\ItemJurnal;
 use App\Models\Perkiraan;
 use App\Models\ProjectLocation;
+use App\Models\KavlingPembeli;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -101,7 +102,7 @@ class LaporanController extends Controller
         $sampai = $request->sampai ?? date('Y-m-t');
         $kodePerkiraan = $request->kode_perkiraan;
 
-        $perkiraan = Perkiraan::active()->detail()->orderBy('kode_perkiraan')->get();
+        $perkiraan = Perkiraan::active()->details()->orderBy('kode_perkiraan')->get();
 
         $data = [];
 
@@ -209,77 +210,76 @@ class LaporanController extends Controller
     {
         $dari = $request->dari ?? date('Y-m-01');
         $sampai = $request->sampai ?? date('Y-m-t');
-        $kodeKavling = $request->kode_kavling;
+        $kavlingPembeliId = $request->kavling_pembeli_id;
 
-        $kavling = ProjectLocation::orderBy('kavling')->get();
+        $kavlingList = KavlingPembeli::with(['kavling', 'pembeli'])
+            ->aktif()
+            ->get();
 
         $data = [];
 
-        if ($kodeKavling) {
-            $kavlingData = ProjectLocation::with('owner')->where('kavling', $kodeKavling)->first();
-            
-            if ($kavlingData) {
-                // Get all transactions for this kavling
-                $transaksi = ItemJurnal::with(['jurnal', 'perkiraan'])
-                    ->where('kode_kavling', $kodeKavling)
-                    ->whereHas('jurnal', function($q) use ($dari, $sampai) {
-                        $q->posted()->whereBetween('tanggal', [$dari, $sampai]);
-                    })
-                    ->orderBy('id')
-                    ->get();
+        if ($kavlingPembeliId) {
+            $kavlingPembeli = KavlingPembeli::with(['kavling', 'pembeli'])
+                ->findOrFail($kavlingPembeliId);
 
-                // Group by perkiraan
-                $grouped = $transaksi->groupBy('kode_perkiraan');
+            // Ambil kode_kavling dan id_user dari KavlingPembeli
+            $kodeKavling = $kavlingPembeli->kavling->kavling ?? null;
+            $idUser = $kavlingPembeli->user_id;
 
-                // Calculate totals
-                $totalDebet = $transaksi->sum('debet');
-                $totalKredit = $transaksi->sum('kredit');
+            $transaksi = ItemJurnal::with(['jurnal', 'perkiraan'])
+                ->where('kode_kavling', $kodeKavling)
+                ->where('id_user', $idUser)
+                ->whereHas('jurnal', function($q) use ($dari, $sampai) {
+                    $q->posted()->whereBetween('tanggal', [$dari, $sampai]);
+                })
+                ->orderBy('id')
+                ->get();
 
-                // Get HPP (Harga Pokok) - biaya pembangunan
-                $hpp = $transaksi->where(function($item) {
-                    return $item->perkiraan->is_hpp ?? false;
-                })->sum('debet');
+            $totalDebet = $transaksi->sum('debet');
+            $totalKredit = $transaksi->sum('kredit');
+            $pembayaran = $transaksi->sum('kredit');
+            $sisaPembayaran = ($kavlingPembeli->harga_jual ?? 0) - $pembayaran;
 
-                // Get pembayaran (uang muka, cicilan)
-                $pembayaran = $transaksi->where('kode_perkiraan', 'LIKE', '211%')->sum('kredit');
-
-                $data = [
-                    'kavling' => $kavlingData,
-                    'transaksi' => $transaksi,
-                    'grouped' => $grouped,
-                    'total_debet' => $totalDebet,
-                    'total_kredit' => $totalKredit,
-                    'hpp' => $hpp,
-                    'pembayaran' => $pembayaran,
-                    'sisa_pembayaran' => ($kavlingData->harga_jual ?? 0) - $pembayaran,
-                ];
-            }
+            $data = [
+                'kavlingPembeli'  => $kavlingPembeli,
+                'transaksi'       => $transaksi,
+                'total_debet'     => $totalDebet,
+                'total_kredit'    => $totalKredit,
+                'pembayaran'      => $pembayaran,
+                'sisa_pembayaran' => $sisaPembayaran,
+            ];
         }
 
-        return view('accounting.laporan.buku-pembantu-kavling', compact('kavling', 'data', 'dari', 'sampai', 'kodeKavling'));
+        return view('accounting.laporan.buku-pembantu-kavling', compact('kavlingList', 'data', 'dari', 'sampai', 'kavlingPembeliId'));
     }
 
     public function bukuPembantuKavlingPrint(Request $request)
     {
         $dari = $request->dari ?? date('Y-m-01');
         $sampai = $request->sampai ?? date('Y-m-t');
-        $kodeKavling = $request->kode_kavling;
+        $kavlingPembeliId = $request->kavling_pembeli_id;
 
-        $kavlingData = ProjectLocation::with('owner')->where('kavling', $kodeKavling)->first();
-        
+        $kavlingPembeli = KavlingPembeli::with(['kavling', 'pembeli'])
+            ->findOrFail($kavlingPembeliId);
+
+        $kodeKavling = $kavlingPembeli->kavling->kavling ?? null;
+        $idUser = $kavlingPembeli->user_id;
+
         $transaksi = ItemJurnal::with(['jurnal', 'perkiraan'])
             ->where('kode_kavling', $kodeKavling)
+            ->where('id_user', $idUser)
             ->whereHas('jurnal', function($q) use ($dari, $sampai) {
                 $q->posted()->whereBetween('tanggal', [$dari, $sampai]);
             })
             ->orderBy('id')
             ->get();
 
-        $grouped = $transaksi->groupBy('kode_perkiraan');
         $totalDebet = $transaksi->sum('debet');
         $totalKredit = $transaksi->sum('kredit');
 
-        return view('accounting.laporan.buku-pembantu-kavling-print', compact('kavlingData', 'transaksi', 'grouped', 'totalDebet', 'totalKredit', 'dari', 'sampai'));
+        return view('accounting.laporan.buku-pembantu-kavling-print', compact(
+            'kavlingPembeli', 'transaksi', 'totalDebet', 'totalKredit', 'dari', 'sampai'
+        ));
     }
 
     // =============================================================================
@@ -324,7 +324,7 @@ class LaporanController extends Controller
         $totalKewajiban = $kewajiban->sum('saldo');
         $totalModal = $modal->sum('saldo') + $labaRugi;
 
-        return view('accounting.laporan.neraca-print', compact(
+        return view('accounting.laporan.neraca.print', compact(
             'aset', 'kewajiban', 'modal', 'labaRugi',
             'totalAset', 'totalKewajiban', 'totalModal', 'tanggal'
         ));
@@ -462,16 +462,18 @@ class LaporanController extends Controller
     {
         $tanggal = $request->tanggal ?? date('Y-m-t');
 
-        // Detail breakdown per kategori
-        $data = [
-            'kas_bank' => $this->getCalkDetail('11', $tanggal, 'Kas dan Bank'),
-            'piutang' => $this->getCalkDetail('115', $tanggal, 'Piutang Konsumen'),
-            'persediaan_tanah' => $this->getCalkDetail('12', $tanggal, 'Persediaan Tanah'),
-            'persediaan_bangunan' => $this->getCalkDetail('13', $tanggal, 'Persediaan Bangunan'),
-            'aktiva_tetap' => $this->getCalkDetail('14', $tanggal, 'Aktiva Tetap'),
-            'hutang' => $this->getCalkDetail('21', $tanggal, 'Hutang'),
-            'modal' => $this->getCalkDetail('23', $tanggal, 'Modal'),
-        ];
+        // Ambil semua kategori unik dari master perkiraan yang aktif
+        $kategoris = Perkiraan::active()
+            ->whereNotNull('kategori')
+            ->distinct()
+            ->pluck('kategori')
+            ->sort()
+            ->values();
+
+        $data = [];
+        foreach ($kategoris as $kategori) {
+            $data[$kategori] = $this->getCalkDetail($kategori, $tanggal);
+        }
 
         return view('accounting.laporan.calk', compact('data', 'tanggal'));
     }
@@ -480,15 +482,17 @@ class LaporanController extends Controller
     {
         $tanggal = $request->tanggal ?? date('Y-m-t');
 
-        $data = [
-            'kas_bank' => $this->getCalkDetail('11', $tanggal, 'Kas dan Bank'),
-            'piutang' => $this->getCalkDetail('115', $tanggal, 'Piutang Konsumen'),
-            'persediaan_tanah' => $this->getCalkDetail('12', $tanggal, 'Persediaan Tanah'),
-            'persediaan_bangunan' => $this->getCalkDetail('13', $tanggal, 'Persediaan Bangunan'),
-            'aktiva_tetap' => $this->getCalkDetail('14', $tanggal, 'Aktiva Tetap'),
-            'hutang' => $this->getCalkDetail('21', $tanggal, 'Hutang'),
-            'modal' => $this->getCalkDetail('23', $tanggal, 'Modal'),
-        ];
+        $kategoris = Perkiraan::active()
+            ->whereNotNull('kategori')
+            ->distinct()
+            ->pluck('kategori')
+            ->sort()
+            ->values();
+
+        $data = [];
+        foreach ($kategoris as $kategori) {
+            $data[$kategori] = $this->getCalkDetail($kategori, $tanggal);
+        }
 
         return view('accounting.laporan.calk-print', compact('data', 'tanggal'));
     }
@@ -596,9 +600,9 @@ class LaporanController extends Controller
     /**
      * Get detail for CALK
      */
-    private function getCalkDetail($prefix, $tanggal, $title)
+    private function getCalkDetail($kategori, $tanggal)
     {
-        $perkiraan = Perkiraan::where('kode_perkiraan', 'LIKE', $prefix . '%')
+        $perkiraan = Perkiraan::where('kategori', $kategori)
             ->active()
             ->get()
             ->map(function($p) use ($tanggal) {
@@ -606,12 +610,10 @@ class LaporanController extends Controller
                 $p->saldo = $saldo;
                 return $p;
             })
-            ->filter(function($p) {
-                return $p->saldo != 0;
-            });
+            ->filter(fn($p) => $p->saldo != 0);
 
         return [
-            'title' => $title,
+            'title' => $kategori,
             'items' => $perkiraan,
             'total' => $perkiraan->sum('saldo'),
         ];
