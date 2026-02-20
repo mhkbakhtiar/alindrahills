@@ -11,13 +11,6 @@
             @method('PUT')
             
             <div class="grid grid-cols-2 gap-4">
-                <x-input 
-                    label="Kode Material" 
-                    name="material_code" 
-                    :required="true"
-                    :value="old('material_code', $material->material_code)"
-                    :error="$errors->first('material_code')"
-                />
 
                 <x-input 
                     label="Nama Material" 

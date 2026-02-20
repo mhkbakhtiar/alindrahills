@@ -10,13 +10,6 @@
             @csrf
             
             <div class="grid grid-cols-2 gap-4">
-                <x-input 
-                    label="Kode Tukang" 
-                    name="worker_code" 
-                    :required="true"
-                    :value="old('worker_code')"
-                    placeholder="TK-001"
-                />
 
                 <x-input 
                     label="Nama Lengkap" 
@@ -59,12 +52,7 @@
                 </div>
             </div>
 
-            <div class="mb-3">
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Alamat</label>
-                <textarea name="address" rows="2" class="w-full px-3 py-2 text-sm border rounded">{{ old('address') }}</textarea>
-            </div>
-
-            <div class="flex justify-end gap-2 pt-4 border-t">
+            <div class="flex justify-end gap-2 mt-6 pt-4 border-t">
                 <x-button type="button" variant="secondary" href="{{ route('workers.index') }}">Batal</x-button>
                 <x-button type="submit" variant="primary">Simpan</x-button>
             </div>

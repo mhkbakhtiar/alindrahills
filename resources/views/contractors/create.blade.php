@@ -10,7 +10,6 @@
             @csrf
 
             <div class="grid grid-cols-2 gap-4 mb-4">
-                <x-input label="Kode Contractor" name="contractor_code" required />
                 <x-input label="Nama Contractor" name="contractor_name" required />
                 <x-input label="PIC" name="pic_name" />
                 <x-input label="Telepon" name="phone" />

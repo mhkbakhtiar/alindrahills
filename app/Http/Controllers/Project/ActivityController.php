@@ -7,6 +7,7 @@ use App\Models\Activity;
 use App\Models\ProjectLocation;
 use App\Models\Worker;
 use App\Models\Contractor;
+use App\Models\MasterPrefixNomor;
 use App\Models\ActivityWorker;
 use DB;
 use Illuminate\Http\Request;
@@ -45,7 +46,6 @@ class ActivityController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'activity_code' => 'required|unique:activities|max:50',
             'activity_name' => 'required|max:100',
             'location_id' => 'required|exists:project_locations,location_id',
             'activity_type' => 'required|max:50',
@@ -64,6 +64,7 @@ class ActivityController extends Controller
         DB::beginTransaction();
         try {
             $validated['created_by'] = auth()->id();
+            $validated['activity_code'] = MasterPrefixNomor::generateFor('KEG');
             $activity = Activity::create($validated);
 
             // Assign workers if provided
@@ -119,7 +120,6 @@ class ActivityController extends Controller
     public function update(Request $request, Activity $activity)
     {
         $validated = $request->validate([
-            'activity_code' => 'required|max:50|unique:activities,activity_code,' . $activity->activity_id . ',activity_id',
             'activity_name' => 'required|max:100',
             'location_id' => 'required|exists:project_locations,location_id',
             'activity_type' => 'required|max:50',

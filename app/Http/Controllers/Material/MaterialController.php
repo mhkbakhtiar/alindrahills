@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Material;
 
 use App\Http\Controllers\Controller;
 use App\Models\Material;
+use App\Models\MasterPrefixNomor;
 use Illuminate\Http\Request;
 
 class MaterialController extends Controller
@@ -39,7 +40,6 @@ class MaterialController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'material_code' => 'required|unique:materials|max:20',
             'material_name' => 'required|max:100',
             'category' => 'required|max:50',
             'unit' => 'required|max:20',
@@ -47,6 +47,8 @@ class MaterialController extends Controller
             'costing_method' => 'required|in:FIFO,LIFO,AVERAGE',
             'description' => 'nullable',
         ]);
+
+        $validated['material_code'] = MasterPrefixNomor::generateFor('MTR');
 
         Material::create($validated);
 
@@ -74,7 +76,6 @@ class MaterialController extends Controller
     public function update(Request $request, Material $material)
     {
         $validated = $request->validate([
-            'material_code' => 'required|max:20|unique:materials,material_code,' . $material->material_id . ',material_id',
             'material_name' => 'required|max:100',
             'category' => 'required|max:50',
             'unit' => 'required|max:20',

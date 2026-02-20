@@ -7,6 +7,7 @@ use App\Models\Activity;
 use App\Models\PayrollRequest;
 use App\Models\PayrollRequestDetail;
 use App\Models\Worker;
+use App\Models\MasterPrefixNomor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -55,7 +56,6 @@ class PayrollRequestController extends Controller
             'request_date' => 'required|date',
             'period_start' => 'required|date',
             'period_end' => 'required|date|after_or_equal:period_start',
-            'letter_number' => 'required|max:50',
             'letter_date' => 'required|date',
             'activity_id' => 'nullable|exists:activities,activity_id',
             'notes' => 'nullable',
@@ -79,7 +79,7 @@ class PayrollRequestController extends Controller
                 'period_end' => $validated['period_end'],
                 'requested_by' => auth()->id(),
                 'activity_id' => $validated['activity_id'] ?? null,
-                'letter_number' => $validated['letter_number'],
+                'letter_number' => MasterPrefixNomor::generateFor('GJI'),
                 'letter_date' => $validated['letter_date'],
                 'notes' => $validated['notes'],
                 'status' => 'pending',
@@ -158,7 +158,6 @@ class PayrollRequestController extends Controller
             'request_date' => 'required|date',
             'period_start' => 'required|date',
             'period_end' => 'required|date|after_or_equal:period_start',
-            'letter_number' => 'required|max:50',
             'letter_date' => 'required|date',
             'activity_id' => 'nullable|exists:activities,activity_id',
             'notes' => 'nullable',
@@ -181,7 +180,6 @@ class PayrollRequestController extends Controller
                 'period_start' => $validated['period_start'],
                 'period_end' => $validated['period_end'],
                 'activity_id' => $validated['activity_id'] ?? null,
-                'letter_number' => $validated['letter_number'],
                 'letter_date' => $validated['letter_date'],
                 'notes' => $validated['notes'],
             ]);

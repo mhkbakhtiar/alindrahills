@@ -11,7 +11,7 @@ $classes = [
 
 <div class="mb-4 p-3 border rounded {{ $classes[$type] }}" x-data="{show:true}" x-show="show">
     <div class="flex justify-between items-start">
-        <div class="text-sm">{{ $message }}</div>
+        <div class="text-sm">{!! $message !!}</div>
         <button @click="show=false" class="ml-2 text-xs">✕</button>
     </div>
 </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Payroll;
 
 use App\Http\Controllers\Controller;
 use App\Models\Worker;
+use App\Models\MasterPrefixNomor;
 use Illuminate\Http\Request;
 
 class WorkerController extends Controller
@@ -32,13 +33,13 @@ class WorkerController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'worker_code' => 'required|unique:workers|max:20',
             'full_name' => 'required|max:100',
             'phone' => 'nullable|max:20',
-            'address' => 'nullable',
             'worker_type' => 'required|max:50',
             'daily_rate' => 'required|numeric|min:0',
         ]);
+
+        $validated['worker_code'] = MasterPrefixNomor::generateFor('TKG');
 
         Worker::create($validated);
 
@@ -54,10 +55,8 @@ class WorkerController extends Controller
     public function update(Request $request, Worker $worker)
     {
         $validated = $request->validate([
-            'worker_code' => 'required|max:20|unique:workers,worker_code,' . $worker->worker_id . ',worker_id',
             'full_name' => 'required|max:100',
             'phone' => 'nullable|max:20',
-            'address' => 'nullable',
             'worker_type' => 'required|max:50',
             'daily_rate' => 'required|numeric|min:0',
             'is_active' => 'required|boolean',

@@ -59,6 +59,7 @@
                     </svg>
                 </button>
                 <div x-show="open" class="pl-8 space-y-1">
+                    <a href="{{ route('warehouses.index') }}" class="block px-4 py-1.5 hover:bg-gray-800">Gudang</a>
                     <a href="{{ route('stocks.index') }}" class="block px-4 py-1.5 hover:bg-gray-800">Stok Material</a>
                     <a href="{{ route('batches.index') }}" class="block px-4 py-1.5 hover:bg-gray-800">Batch Tracking</a>
                     <a href="{{ route('mutations.index') }}" class="block px-4 py-1.5 hover:bg-gray-800">Mutasi Stok</a>
@@ -192,6 +193,23 @@
                 </div>
             </div>
             @endif
+
+            <div x-data="{ open: false }">
+                <button @click="open = !open" class="w-full flex items-center justify-between px-4 py-2 hover:bg-gray-800">
+                    <span class="flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M8.832 20h6.673M12 4.354a4 4 0 110 5.292M12 4.354a4 4 0 100 5.292M12 4.354v1.292m0 4.708v1.292m-6.364-6.364l-.916.916m5.656 5.656l-.916.916m0-5.656l.916.916m-5.656 5.656l-.916-.916" />
+                        </svg>
+                        Pengaturan
+                    </span>
+                    <svg class="w-3 h-3 transition-transform" :class="open ? 'rotate-90' : ''" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <div x-show="open" class="pl-8 space-y-1">
+                    <a href="{{ route('settings.prefix.index') }}" class="block px-4 py-1.5 hover:bg-gray-800 {{ request()->routeIs('settings.prefix.*') ? 'text-white' : '' }}">Master Prefix Nomor</a>
+                </div>
+            </div>
         </nav>
 
         <!-- User Info -->

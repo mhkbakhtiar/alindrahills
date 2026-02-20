@@ -2,24 +2,32 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
+
 use App\Http\Controllers\Material\MaterialController;
 use App\Http\Controllers\Material\PurchaseRequestController;
 use App\Http\Controllers\Material\PurchaseController;
 use App\Http\Controllers\Material\GoodsReceiptController;
+
+use App\Http\Controllers\Material\WarehouseController;
+
 use App\Http\Controllers\Warehouse\StockController;
 use App\Http\Controllers\Warehouse\BatchController;
 use App\Http\Controllers\Warehouse\MutationController;
+
 use App\Http\Controllers\Project\ActivityController;
 use App\Http\Controllers\Project\MaterialUsageController;
 use App\Http\Controllers\Project\LocationController;
 use App\Http\Controllers\Project\ContractorController;
 use App\Http\Controllers\Project\ActivityWorkerController;
+
 use App\Http\Controllers\Payroll\WorkerController;
 use App\Http\Controllers\Payroll\WorkerAttendanceController;
 use App\Http\Controllers\Payroll\PayrollRequestController;
+
 use App\Http\Controllers\Report\StockReportController;
 use App\Http\Controllers\Report\ActivityReportController;
 use App\Http\Controllers\Report\PayrollReportController;
+
 use App\Http\Controllers\Master\PembeliController;
 use App\Http\Controllers\Master\KavlingPembeliController;
 
@@ -29,6 +37,8 @@ use App\Http\Controllers\Accounting\ItemJurnalController;
 use App\Http\Controllers\Accounting\TahunAnggaranController;
 use App\Http\Controllers\Accounting\DepartemenController;
 use App\Http\Controllers\Accounting\LaporanController;
+
+use App\Http\Controllers\Settings\MasterPrefixNomorController;
 
 
 
@@ -151,6 +161,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/stock/movements/export', [StockReportController::class, 'exportMovements'])->name('stock.export-movements');
     });
 
+    Route::resource('warehouses', WarehouseController::class);
+
 
     // Accounting Routes
     Route::prefix('accounting')->name('accounting.')->middleware(['auth'])->group(function () {
@@ -250,6 +262,10 @@ Route::middleware(['auth'])->group(function () {
             Route::get('jurnal/{id}/check-balance', [JurnalController::class, 'checkBalance'])->name('jurnal.check-balance');
         });
     });
+
+    Route::resource('settings/prefix', MasterPrefixNomorController::class)->names('settings.prefix');
+    Route::post('settings/prefix/{prefix}/reset', [MasterPrefixNomorController::class, 'reset'])->name('settings.prefix.reset');
+    Route::post('settings/prefix/preview', [MasterPrefixNomorController::class, 'preview'])->name('settings.prefix.preview');
 
 });
 

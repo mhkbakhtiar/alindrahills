@@ -10,6 +10,7 @@ use App\Models\ProjectLocation;
 use App\Models\User;
 use App\Models\KavlingPembeli;
 use App\Models\TahunAnggaran;
+use App\Models\MasterPrefixNomor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -72,7 +73,6 @@ class JurnalController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nomor_bukti' => 'required|unique:jurnal,nomor_bukti|max:50',
             'tanggal' => 'required|date',
             'keterangan' => 'nullable',
             'jenis_jurnal' => 'required|in:umum,penyesuaian,penutup,pembalik',
@@ -126,7 +126,7 @@ class JurnalController extends Controller
 
             // Create jurnal
             $jurnal = Jurnal::create([
-                'nomor_bukti' => $validated['nomor_bukti'],
+                'nomor_bukti' => MasterPrefixNomor::generateFor('JU'),
                 'tanggal' => $validated['tanggal'],
                 'keterangan' => $validated['keterangan'],
                 'jenis_jurnal' => $validated['jenis_jurnal'],
@@ -214,7 +214,6 @@ class JurnalController extends Controller
         }
 
         $validated = $request->validate([
-            'nomor_bukti' => 'required|max:50|unique:jurnal,nomor_bukti,' . $jurnal->id,
             'tanggal' => 'required|date',
             'keterangan' => 'nullable',
             'items' => 'required|array|min:2',
@@ -239,7 +238,6 @@ class JurnalController extends Controller
 
             // Update jurnal
             $jurnal->update([
-                'nomor_bukti' => $validated['nomor_bukti'],
                 'tanggal' => $validated['tanggal'],
                 'keterangan' => $validated['keterangan'],
                 'updated_by' => auth()->user()->user_id,

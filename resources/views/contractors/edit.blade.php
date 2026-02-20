@@ -10,7 +10,6 @@
             @csrf @method('PUT')
 
             <div class="grid grid-cols-2 gap-4 mb-4">
-                <x-input label="Kode Contractor" name="contractor_code" :value="$contractor->contractor_code" required />
                 <x-input label="Nama Contractor" name="contractor_name" :value="$contractor->contractor_name" required />
                 <x-input label="PIC" name="pic_name" :value="$contractor->pic_name" />
                 <x-input label="Telepon" name="phone" :value="$contractor->phone" />

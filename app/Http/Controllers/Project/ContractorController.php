@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Project;
 
 use App\Http\Controllers\Controller;
 use App\Models\Contractor;
+use App\Models\MasterPrefixNomor;
 use Illuminate\Http\Request;
 
 class ContractorController extends Controller
@@ -28,10 +29,11 @@ class ContractorController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'contractor_code' => 'required|unique:contractors,contractor_code',
             'contractor_name' => 'required',
             'status'          => 'required',
         ]);
+
+        $request->merge(['contractor_code' => MasterPrefixNomor::generateFor('KTR')]);
 
         Contractor::create($request->all());
 
@@ -48,7 +50,6 @@ class ContractorController extends Controller
     public function update(Request $request, Contractor $contractor)
     {
         $request->validate([
-            'contractor_code' => 'required|unique:contractors,contractor_code,' . $contractor->contractor_id . ',contractor_id',
             'contractor_name' => 'required',
             'status'          => 'required',
         ]);

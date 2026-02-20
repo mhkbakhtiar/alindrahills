@@ -27,16 +27,6 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Surat <span class="text-red-500">*</span></label>
-                    <input type="text" name="letter_number" value="{{ old('letter_number') }}" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500 @error('letter_number') border-red-500 @enderror" 
-                        placeholder="Contoh: SPB/001/I/2026" required>
-                    @error('letter_number')
-                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Surat <span class="text-red-500">*</span></label>
                     <input type="date" name="letter_date" value="{{ old('letter_date', date('Y-m-d')) }}" 
                         class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500 @error('letter_date') border-red-500 @enderror" required>

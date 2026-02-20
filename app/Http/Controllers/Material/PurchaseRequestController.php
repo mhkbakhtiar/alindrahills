@@ -7,6 +7,7 @@ use App\Models\PurchaseRequest;
 use App\Models\PurchaseRequestDetail;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Material;
+use App\Models\MasterPrefixNomor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -38,7 +39,6 @@ class PurchaseRequestController extends Controller
     {
         $validated = $request->validate([
             'request_date' => 'required|date',
-            'letter_number' => 'required|max:50',
             'letter_date' => 'required|date',
             'purpose' => 'required',
             'materials' => 'required|array|min:1',
@@ -53,7 +53,7 @@ class PurchaseRequestController extends Controller
                 'request_number' => $this->generateRequestNumber(),
                 'request_date' => $validated['request_date'],
                 'requested_by' => auth()->id(),
-                'letter_number' => $validated['letter_number'],
+                'letter_number' => MasterPrefixNomor::generateFor('PR'),
                 'letter_date' => $validated['letter_date'],
                 'purpose' => $validated['purpose'],
                 'status' => 'pending',
@@ -166,7 +166,6 @@ class PurchaseRequestController extends Controller
 
         $validated = $request->validate([
             'request_date' => 'required|date',
-            'letter_number' => 'required|max:50|unique:purchase_requests,letter_number,' . $purchaseRequest->request_id . ',request_id',
             'letter_date' => 'required|date',
             'purpose' => 'required',
             'materials' => 'required|array|min:1',
@@ -180,7 +179,6 @@ class PurchaseRequestController extends Controller
             // Update main record
             $purchaseRequest->update([
                 'request_date' => $validated['request_date'],
-                'letter_number' => $validated['letter_number'],
                 'letter_date' => $validated['letter_date'],
                 'purpose' => $validated['purpose'],
             ]);

@@ -39,11 +39,6 @@
         <x-card>
             <h3 class="text-sm font-semibold mb-4">Informasi Jurnal</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Nomor Bukti *</label>
-                    <input type="text" name="nomor_bukti" value="{{ old('nomor_bukti', $nomorBukti) }}" 
-                        class="w-full px-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                </div>
 
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">Tanggal *</label>

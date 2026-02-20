@@ -10,13 +10,6 @@
             @csrf
             
             <div class="grid grid-cols-2 gap-4 mb-4">
-                <x-input 
-                    label="Kode Kegiatan" 
-                    name="activity_code" 
-                    :required="true"
-                    :value="old('activity_code')"
-                    placeholder="ACT-001"
-                />
 
                 <x-input 
                     label="Nama Kegiatan" 
